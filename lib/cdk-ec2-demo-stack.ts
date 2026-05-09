@@ -1,16 +1,27 @@
-import * as cdk from 'aws-cdk-lib/core';
+import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export class CdkEc2DemoStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    // Simple VPC without NAT Gateway
+    const vpc = new ec2.Vpc(this, 'MyVpc', {
+      natGateways: 0,
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkEc2DemoQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    // EC2 Instance
+    const instance = new ec2.Instance(this, 'MyInstance', {
+      vpc,
+      instanceType: new ec2.InstanceType('t3.micro'),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+    });
+
+    // Allow SSH
+    instance.connections.allowFromAnyIpv4(
+      ec2.Port.tcp(22),
+      'SSH Access'
+    );
   }
 }
